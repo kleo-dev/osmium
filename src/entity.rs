@@ -47,6 +47,20 @@ impl Entity {
         }
     }
 
+    pub fn remove_component<C: Component + 'static>(self: &Arc<Self>) {
+        self.components.lock().unwrap().remove(&TypeId::of::<C>());
+    }
+
+    pub fn get_component<C: Component + Clone + 'static>(self: &Arc<Self>) -> Option<C> {
+        if let Some(a) = self.components.lock().unwrap().get_mut(&TypeId::of::<C>()) {
+            if let Some(c) = a.as_any_mut().downcast_mut::<C>() {
+                return Some(c.clone());
+            }
+        }
+
+        None
+    }
+
     pub fn render(self: &Arc<Self>, renderer: &mut Renderer) {
         (self.render)(renderer)
     }
@@ -61,17 +75,17 @@ impl Entity {
         self.pos.lock().unwrap()
     }
 
-    pub fn get_position<'a>(self: &'a Arc<Self>) -> Point {
+    pub fn get_position(self: &Arc<Self>) -> Point {
         self.pos.lock().unwrap().clone()
     }
 
-    pub fn set_position(&mut self, x: u16, y: u16) {
+    pub fn set_position(self: &Arc<Self>, x: u16, y: u16) {
         let mut pos = self.pos.lock().unwrap();
         pos.x = x;
         pos.y = y;
     }
 
-    pub fn set_position_point<'a>(self: &'a Arc<Self>, pos: Point) {
+    pub fn set_position_point(self: Arc<Self>, pos: Point) {
         *self.pos.lock().unwrap() = pos;
     }
 }

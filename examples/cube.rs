@@ -3,6 +3,9 @@ pub mod components;
 use osmium::{renderer::Point, terminal};
 
 fn main() {
+    let (term_width, term_height) = crossterm::terminal::size().unwrap();
+    let a = term_height - 3;
+
     let engine = osmium::init();
 
     let my_rect = engine.entity(|r| {
@@ -12,6 +15,9 @@ fn main() {
     });
 
     my_rect.component(components::Velocity(Point { x: 0, y: 0 }));
+    my_rect.component(components::ZigZag(term_width - 3));
+
+    my_rect.set_position(0, term_height - 3);
 
     components::threads::tick(&engine);
     components::threads::key(&engine);
@@ -21,26 +27,8 @@ fn main() {
         move |e: &crossterm::event::Event| {
             if let Some(key_event) = e.as_key_event() {
                 match key_event.code {
-                    crossterm::event::KeyCode::Right => {
-                        my_rect.update_component(|c: &mut components::Velocity| {
-                            c.0.x = 100;
-                        });
-                    }
-                    crossterm::event::KeyCode::Left => {
-                        my_rect.update_component(|c: &mut components::Velocity| {
-                            c.0.x = -100;
-                        });
-                    }
-
-                    crossterm::event::KeyCode::Down => {
-                        my_rect.update_component(|c: &mut components::Velocity| {
-                            c.0.y = 100;
-                        });
-                    }
-                    crossterm::event::KeyCode::Up => {
-                        my_rect.update_component(|c: &mut components::Velocity| {
-                            c.0.y = -100;
-                        });
+                    crossterm::event::KeyCode::Char(' ') => {
+                        my_rect.component(components::Jumping(0, a));
                     }
                     _ => {}
                 }
