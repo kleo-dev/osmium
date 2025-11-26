@@ -1,6 +1,10 @@
 pub mod entity;
+pub mod renderer;
+pub mod terminal;
 
 use std::collections::HashMap;
+
+use crate::renderer::Renderer;
 
 pub fn init() -> Engine {
     Engine {
@@ -13,8 +17,6 @@ pub struct Engine {
     threads: HashMap<String, Box<dyn FnMut() + Send + Sync>>,
     entities: Vec<entity::Entity>,
 }
-
-pub struct Renderer {}
 
 impl Engine {
     pub fn thread<F: FnMut() + Send + Sync + 'static>(&mut self, label: &str, f: F) {
