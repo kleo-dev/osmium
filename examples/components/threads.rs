@@ -19,10 +19,11 @@ pub fn tick(engine: &Arc<Engine>) {
 }
 
 pub fn key(engine: &Arc<Engine>) {
+    crossterm::terminal::enable_raw_mode().unwrap();
+
     engine.thread("Main.key", |engine| {
         loop {
-            // Pass an event to the thread
-            
+            engine.emit_event(crossterm::event::read().unwrap());
         }
     });
 }

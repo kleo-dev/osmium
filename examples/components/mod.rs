@@ -10,6 +10,10 @@ impl Component for Velocity {
         apply_velocity(tick, self.0.x, &mut position.x);
         apply_velocity(tick, self.0.y, &mut position.y);
     }
+
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
+        self
+    }
 }
 
 fn apply_velocity(tick: u16, velocity: i32, x: &mut u16) -> bool {
