@@ -21,9 +21,11 @@ impl Engine {
         self.threads.insert(label.to_string(), Box::new(f));
     }
 
-    pub fn draw<F: FnMut(&mut Renderer) + 'static>(&self, mut f: F) -> entity::Entity {
-        let mut renderer = Renderer {};
-        (f)(&mut renderer);
-        entity::Entity(Vec::new())
+    pub fn entity<F: FnMut(&mut Renderer) + 'static>(&mut self, f: F) -> &mut entity::Entity {
+        let e = entity::Entity::new(f);
+        self.entities.push(e);
+        self.entities
+            .last_mut()
+            .expect("Unable to obtain entity (unspawned)")
     }
 }
