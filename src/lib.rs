@@ -51,13 +51,14 @@ impl Engine {
 
         let mut renderer = renderer::Renderer::new();
         for entity in self.entities.lock().unwrap().iter() {
+            renderer.set_position_point(entity.get_position());
             entity.render(&mut renderer);
         }
     }
 
-    pub fn tick(self: &Arc<Self>) {
+    pub fn tick(self: &Arc<Self>, tick: u16) {
         for entity in self.entities.lock().unwrap().iter() {
-            entity.tick();
+            entity.tick(tick);
         }
     }
 
