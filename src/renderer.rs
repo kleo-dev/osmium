@@ -1,9 +1,9 @@
 use crate::terminal::{hex_bg, print_liner};
 
 #[derive(Debug, Clone)]
-pub struct Point {
-    pub x: u16,
-    pub y: u16,
+pub struct Point<I = u16> {
+    pub x: I,
+    pub y: I,
 }
 
 pub struct Renderer {
