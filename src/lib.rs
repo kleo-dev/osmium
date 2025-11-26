@@ -2,20 +2,23 @@ pub mod entity;
 pub mod renderer;
 pub mod terminal;
 
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use crate::renderer::Renderer;
 
-pub fn init() -> Engine {
-    Engine {
-        threads: HashMap::new(),
-        entities: Vec::new(),
-    }
+pub fn init() -> Arc<Engine> {
+    Arc::new(Engine {
+        threads: Mutex::new(HashMap::new()),
+        entities: Mutex::new(Vec::new()),
+    })
 }
 
 pub struct Engine {
-    threads: HashMap<String, Box<dyn FnMut() + Send + Sync>>,
-    entities: Vec<entity::Entity>,
+    threads: Mutex<HashMap<String, Arc<dyn Fn(&Arc<Self>) + Send + Sync>>>,
+    entities: Mutex<Vec<Arc<entity::Entity>>>,
 }
 
 pub fn sleep(ms: u64) {
@@ -23,38 +26,46 @@ pub fn sleep(ms: u64) {
 }
 
 impl Engine {
-    pub fn thread<F: FnMut() + Send + Sync + 'static>(&mut self, label: &str, f: F) {
-        self.threads.insert(label.to_string(), Box::new(f));
+    pub fn thread<F: Fn(&Arc<Self>) + Send + Sync + 'static>(self: &Arc<Self>, label: &str, f: F) {
+        self.threads
+            .lock()
+            .unwrap()
+            .insert(label.to_string(), Arc::new(f));
     }
 
-    pub fn entity<F: FnMut(&mut Renderer) + 'static>(&mut self, f: F) -> &mut entity::Entity {
+    pub fn entity<F: Fn(&mut Renderer) + Send + Sync + 'static>(
+        self: &Arc<Self>,
+        f: F,
+    ) -> Arc<entity::Entity> {
         let e = entity::Entity::new(f);
-        self.entities.push(e);
-        self.entities
+        let mut entities = self.entities.lock().unwrap();
+        entities.push(e);
+        entities
             .last_mut()
             .expect("Unable to obtain entity (unspawned)")
+            .clone()
     }
 
-    pub fn render(&mut self) {
+    pub fn render(self: &Arc<Self>) {
         terminal::clear().unwrap();
 
         let mut renderer = renderer::Renderer::new();
-        for entity in &mut self.entities {
+        for entity in self.entities.lock().unwrap().iter() {
             entity.render(&mut renderer);
         }
     }
 
-    pub fn tick(&mut self) {
-        terminal::clear().unwrap();
-
-        for entity in &mut self.entities {
+    pub fn tick(self: &Arc<Self>) {
+        for entity in self.entities.lock().unwrap().iter() {
             entity.tick();
         }
     }
 
-    pub fn start(&mut self) {
-        for thr in &mut self.threads.values() {
-            //     std::thread::spawn(thr);
+    pub fn start(self: &Arc<Self>) {
+        for thr in self.threads.lock().unwrap().values() {
+            let thr = thr.clone();
+            let engine = self.clone();
+            std::thread::spawn(move || (thr)(&engine));
         }
 
         loop {
