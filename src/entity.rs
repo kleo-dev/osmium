@@ -29,4 +29,10 @@ impl Entity {
     pub fn render(&mut self, renderer: &mut Renderer) {
         (self.render)(renderer)
     }
+
+    pub fn tick(&mut self) {
+        for comp in &mut self.components {
+            // comp.tick(self);
+        }
+    }
 }

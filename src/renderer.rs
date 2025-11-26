@@ -3,6 +3,10 @@ use crate::terminal::{hex_bg, print_liner};
 pub struct Renderer {}
 
 impl Renderer {
+    pub fn new() -> Self {
+        Self {}
+    }
+
     pub fn draw_rect(&self, x: u16, y: u16, width: u16, height: u16, color: u32) {
         let rl = " ".repeat(width as usize) + "\x1b[0m";
         let rect = (rl + "\n").repeat(height as usize);
