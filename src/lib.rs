@@ -74,13 +74,14 @@ impl Engine {
     }
 
     pub fn render(self: &Arc<Self>) {
-        terminal::clear().unwrap();
-
         let mut renderer = renderer::Renderer::new();
         for entity in self.entities.lock().unwrap().iter() {
             renderer.set_position_point(entity.get_position());
             entity.render(&mut renderer);
         }
+
+        terminal::clear().unwrap();
+        renderer.render();
     }
 
     pub fn tick(self: &Arc<Self>, tick: u16) {
@@ -98,7 +99,7 @@ impl Engine {
 
         loop {
             self.render();
-            sleep(16);
+            sleep(160);
         }
     }
 }

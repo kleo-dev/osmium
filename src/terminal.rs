@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::io::{self, Write};
 
 use crossterm::{ExecutableCommand, terminal};
@@ -22,9 +23,15 @@ pub fn show_cursor() -> io::Result<()> {
     flush()
 }
 
-pub fn print_liner(x: u16, y: u16, liner: &str, text: &str) {
+pub fn write_liner(buf: &mut String, x: u16, y: u16, liner: &str, text: &str) {
     for (i, line) in text.lines().enumerate() {
-        println!("\x1b[{};{}H{liner}{line}\x1b[0m", (i as u16) + y + 1, x + 1);
+        write!(
+            buf,
+            "\x1b[{};{}H{liner}{line}\x1b[0m",
+            (i as u16) + y + 1,
+            x + 1
+        )
+        .unwrap();
     }
 }
 

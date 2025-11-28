@@ -1,4 +1,4 @@
-use crate::terminal::{hex_bg, print_liner};
+use crate::terminal::{self, hex_bg, write_liner};
 
 #[derive(Debug, Clone)]
 pub struct Point<I = u16> {
@@ -8,26 +8,40 @@ pub struct Point<I = u16> {
 
 pub struct Renderer {
     pos: Point,
+    buf: String,
 }
 
 impl Renderer {
     pub fn new() -> Self {
         Self {
             pos: Point { x: 0, y: 0 },
+            buf: String::new(),
         }
     }
 
-    pub fn draw_rect(&self, x: u16, y: u16, width: u16, height: u16, color: u32) {
+    pub fn draw_rect(&mut self, x: u16, y: u16, width: u16, height: u16, color: u32) {
         let rl = " ".repeat(width as usize) + "\x1b[0m";
         let rect = (rl + "\n").repeat(height as usize);
-        print_liner(self.pos.x + x, self.pos.y + y, &hex_bg(color), &rect);
+        write_liner(
+            &mut self.buf,
+            self.pos.x + x,
+            self.pos.y + y,
+            &hex_bg(color),
+            &rect,
+        );
     }
 
-    pub fn draw_pixel(&self, x: u16, y: u16, color: u32) {
-        print_liner(self.pos.x + x, self.pos.y + y, &hex_bg(color), &" \x1b[0m");
+    pub fn draw_pixel(&mut self, x: u16, y: u16, color: u32) {
+        write_liner(
+            &mut self.buf,
+            self.pos.x + x,
+            self.pos.y + y,
+            &hex_bg(color),
+            &" \x1b[0m",
+        );
     }
 
-    pub fn draw_line(&self, x0: i16, y0: i16, x1: i16, y1: i16, color: u32) {
+    pub fn draw_line(&mut self, x0: i16, y0: i16, x1: i16, y1: i16, color: u32) {
         let dx = (x1 - x0).abs();
         let sx = if x0 < x1 { 1 } else { -1 };
         let dy = -(y1 - y0).abs();
@@ -55,7 +69,7 @@ impl Renderer {
         }
     }
 
-    pub fn draw_vertex_outline(&self, x: u16, y: u16, vertices: &[Point], color: u32) {
+    pub fn draw_vertex_outline(&mut self, x: u16, y: u16, vertices: &[Point], color: u32) {
         if vertices.len() < 2 {
             return;
         }
@@ -74,7 +88,7 @@ impl Renderer {
         }
     }
 
-    pub fn draw_vertex(&self, x: u16, y: u16, vertices: &[Point], color: u32) {
+    pub fn draw_vertex(&mut self, x: u16, y: u16, vertices: &[Point], color: u32) {
         if vertices.len() < 3 {
             return;
         }
@@ -123,6 +137,11 @@ impl Renderer {
                 }
             }
         }
+    }
+
+    pub fn render(&self) {
+        print!("{}", self.buf);
+        terminal::flush().unwrap();
     }
 
     pub fn set_position(&mut self, x: u16, y: u16) {
