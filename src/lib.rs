@@ -99,7 +99,7 @@ impl Engine {
 
         loop {
             self.render();
-            sleep(160);
+            sleep(16);
         }
     }
 }

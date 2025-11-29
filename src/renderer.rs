@@ -19,6 +19,16 @@ impl Renderer {
         }
     }
 
+    pub fn draw_text<T: std::fmt::Display>(&mut self, x: u16, y: u16, text: T) {
+        write_liner(
+            &mut self.buf,
+            self.pos.x + x,
+            self.pos.y + y,
+            "",
+            &text.to_string(),
+        );
+    }
+
     pub fn draw_rect(&mut self, x: u16, y: u16, width: u16, height: u16, color: u32) {
         let rl = " ".repeat(width as usize) + "\x1b[0m";
         let rect = (rl + "\n").repeat(height as usize);
